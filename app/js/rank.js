@@ -195,7 +195,8 @@ const RANK = {
     if (seg === 'red') {
       list = agg.filter(x => x.n >= 1 && x.avg >= 3.8).sort((a, b) => b.score - a.score).slice(0, 12);
     } else if (seg === 'black') {
-      list = agg.filter(x => x.n >= 1 && (x.avg < 3.4 || (x.tags['踩雷'] || 0) >= 1)).sort((a, b) => a.score - b.score).slice(0, 12);
+      // 黑榜: 均分<3.4 直接上; 5星好评不吃"踩雷"标签影响(防标签与星级打架两边都上), 中低分带踩雷才避雷
+      list = agg.filter(x => x.n >= 1 && (x.avg < 3.4 || ((x.tags['踩雷'] || 0) >= 1 && x.avg <= 4.0))).sort((a, b) => a.score - b.score).slice(0, 12);
     } else {
       // 重油重盐预警: 评价标签 + 营养库数据双通道
       list = agg.filter(x => (x.tags['太咸'] || 0) + (x.tags['太油'] || 0) >= 1)
@@ -356,7 +357,7 @@ const RANK = {
     const depth = total >= 15 ? '样本充足(15+条),洞察可信度高' : total >= 6 ? '样本中等(6-14条),趋势仅供参考' : '样本较少(<6条),先看风向,随评价积累自动变准';
     const red = agg.slice().sort((a, b) => b.avg - a.avg).slice(0, 5);
     // 真差评: 均分<3.4 或带踩雷标签; 没有就传空(AI输出"暂无差评"), 不再把高分好评当差评
-    const black = agg.filter(x => x.avg < 3.4 || (x.tags['踩雷'] || 0) >= 1).sort((a, b) => a.avg - b.avg).slice(0, 5);
+    const black = agg.filter(x => x.avg < 3.4 || ((x.tags['踩雷'] || 0) >= 1 && x.avg <= 4.0)).sort((a, b) => a.avg - b.avg).slice(0, 5);
     box.innerHTML = '<div class="skeleton">AI 正在阅读 ' + total + ' 条评价…</div>';
     const pack = xs => xs.map(x => `${x.name}(均分${x.avg.toFixed(1)},${Object.entries(x.tags).map(([t, n]) => t + 'x' + n).join('/')})`).join(';');
     try {
