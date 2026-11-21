@@ -1,0 +1,330 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ff6b2c">
+<title>知食 · 农大AI食堂伴侣</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%BE%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css?v=44">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══════════ 顶栏 ═══════════ -->
+  <header class="topbar">
+    <div class="topbar-brand" title="知食 ZhiShi">
+      <span class="logo-mark">知</span>
+      <div>
+        <h1>知食 <small>ZhiShi</small></h1>
+        <p>农大AI食堂伴侣 · 让每一餐都吃得明白</p>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+
+  <!-- ═══════════ Tab1 首页 ═══════════ -->
+  <section class="tab-view active" id="view-home">
+    <div class="hero-card">
+      <div class="hero-greet" id="home-greet">你好，今天想吃什么？</div>
+      <div class="hero-date" id="home-date"></div>
+      <p class="hero-note">查菜识菜 → AI个性化点餐 → 一键记录 → 周报反馈，健康饮食闭环。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"> AI 今日为你推荐 <button class="mini-btn" id="home-refresh-rec">换一换</button></div>
+      <div id="home-recommend" class="rec-wrap"><div class="skeleton">AI 正在根据今日菜单挑选…</div></div>
+    </div>
+
+    <div class="card" id="home-safety-card">
+      <div class="card-title"> 今日食安贴士 <span class="badge-soft" id="home-safety-date"></span></div>
+      <div id="home-safety"><div class="skeleton">生成中…</div></div>
+    </div>
+
+    <div class="quick-grid">
+      <div class="quick-item" data-go="snap"><span></span><b>查菜记录</b></div>
+      <div class="quick-item" data-go="dine"><span></span><b>AI点餐</b></div>
+      <div class="quick-item" data-go="rank"><span></span><b>红黑榜</b></div>
+      <div class="quick-item" data-go="report"><span></span><b>我的周报</b></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"> 今日摄入 <span class="badge-soft" id="home-kcal-badge">0 / 目标 kcal</span></div>
+      <canvas id="home-today-chart" height="150"></canvas>
+      <div id="home-today-empty" class="empty-hint">今天还没有记录，去「识菜」或「点餐」记一餐吧</div>
+    </div>
+
+    <div class="stat-row" id="home-stats"></div>
+    <div class="foot-note">数据来源：CAU《最全食堂菜品自查手册》(近期菜单快照) · 营养数据为 AI 估算，仅供参考</div>
+  </section>
+
+  <!-- ═══════════ Tab2 查菜/识菜 ═══════════ -->
+  <section class="tab-view" id="view-snap">
+    <div class="page-head"><h2> 查菜 · 识菜</h2><p>输菜名或拍照，AI 帮你查出营养</p></div>
+
+    <div class="card">
+      <div class="card-title"> 从今日菜单选（首选，秒出结果）</div>
+      <input id="snap-search" type="search" placeholder=" 关键词搜菜名，如：宫保鸡丁 / 鱼 / 粥" style="margin-bottom:.5rem">
+      <div id="snap-search-results" class="menu-list" style="max-height:190px;margin-bottom:.5rem" hidden></div>
+      <div class="pick-row">
+        <select id="snap-pick-caf"></select>
+        <select id="snap-pick-dish"></select>
+      </div>
+      <button class="btn btn-primary btn-block" id="btn-snap-pick">查看营养 & AI 点评</button>
+    </div>
+
+    <div class="card" id="snap-result" hidden></div>
+
+    <div class="card snap-card">
+      <div class="card-title"> 拍照识别</div>
+      <div id="snap-drop" class="snap-drop">
+        <div class="snap-preview" id="snap-preview"><span></span><b>拍摄 / 上传菜品照片</b></div>
+        <div class="snap-btns">
+          <button class="btn" id="btn-snap-camera"> 拍照</button>
+          <button class="btn" id="btn-snap-upload"> 从相册选</button>
+        </div>
+        <input type="file" id="file-camera" accept="image/*" capture="environment" hidden>
+        <input type="file" id="file-upload" accept="image/*" hidden>
+      </div>
+      <label class="field" style="margin:.5rem 0 0"><span>补充说明（可选，但强烈建议填，识别更准）</span>
+        <input id="snap-hint" placeholder="如：黄焖鸡 / 颐二的麻辣香锅 / 炸鸡排配小番茄"></label>
+      <button class="btn btn-primary btn-block" id="btn-snap-run" disabled> AI 识别这道菜</button>
+    </div>
+
+    <!-- ═══════════ 手动添加菜品弹层 ═══════════ -->
+    <div class="modal" id="add-dish-modal" hidden>
+      <div class="modal-card">
+        <div class="modal-head"><b> 添加菜品(手册没收录的)</b><button class="icon-btn" id="add-dish-close">✕</button></div>
+        <label class="field"><span>菜名 *</span><input id="add-name" placeholder="如:小火锅"></label>
+        <label class="field"><span>食堂 *</span><select id="add-caf"></select></label>
+        <label class="field"><span>窗口(选填)</span><input id="add-win" placeholder="如:小火锅窗口"></label>
+        <button class="btn btn-primary btn-block" id="add-dish-ai">AI 估算营养并加入菜单</button>
+        <div class="mini-note" id="add-dish-status">添加后立即可搜索、可评价、计入推荐池。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ Tab3 点餐 ═══════════ -->
+  <section class="tab-view" id="view-dine">
+    <div class="page-head"><h2> AI 个性化点餐</h2><p>设定你的目标和忌口，AI 结合今日菜单帮你搭配一餐</p></div>
+
+    <div class="card">
+      <div class="card-title"> 我的健康档案</div>
+      <div class="chip-group" id="profile-goal">
+        <span class="chip-label">目标</span>
+        <button class="chip" data-v="无"> 不设目标</button>
+        <button class="chip" data-v="减脂"> 减脂</button>
+        <button class="chip" data-v="增肌"> 增肌</button>
+        <button class="chip" data-v="控糖"> 控糖</button>
+        <button class="chip" data-v="均衡"> 均衡饮食</button>
+      </div>
+      <div class="chip-group" id="profile-allergy">
+        <span class="chip-label">过敏/忌口</span>
+        <button class="chip" data-v="花生">花生</button>
+        <button class="chip" data-v="坚果">坚果</button>
+        <button class="chip" data-v="海鲜">海鲜</button>
+        <button class="chip" data-v="蛋">鸡蛋</button>
+        <button class="chip" data-v="奶">牛奶</button>
+        <button class="chip" data-v="大豆">大豆</button>
+        <button class="chip" data-v="麸质">麸质(面食)</button>
+        <button class="chip" data-v="辣">不吃辣</button>
+        <button class="chip" data-v="香菜">香菜</button>
+      </div>
+      <div class="chip-group" id="profile-extra0">
+        <span class="chip-label">范围</span>
+        <button class="chip" data-v="全部">不限(AI帮你选)</button>
+      </div>
+      <div class="chip-group" id="profile-extra">
+        <span class="chip-label">东区</span>
+        <button class="chip" data-v="公一">公一</button>
+        <button class="chip" data-v="公二">公二</button>
+        <button class="chip" data-v="公三">公三</button>
+        <button class="chip" data-v="公四">公四(研一)</button>
+        <button class="chip" data-v="研二（风味）">研二(风味)</button>
+        <button class="chip" data-v="清真">清真</button>
+      </div>
+      <div class="chip-group" id="profile-extra2">
+        <span class="chip-label">西区</span>
+        <button class="chip" data-v="和园（和一、和二）">和园</button>
+        <button class="chip" data-v="颐一">颐一</button>
+        <button class="chip" data-v="颐二">颐二</button>
+        <button class="chip" data-v="颐三">颐三</button>
+        <button class="chip" data-v="西·清真">西·清真</button>
+      </div>
+      <label class="field"><span>想吃 / 不想吃（都会影响 AI 搭配）</span>
+        <input id="dine-craving" placeholder="想吃：鱼、有汤的；不想吃：太辣、油腻、香菜"></label>
+      <button class="btn btn-primary btn-block" id="btn-dine-run"> AI 帮我搭配这一餐</button>
+    </div>
+
+    <div id="dine-result"></div>
+
+    <div class="card">
+      <div class="card-title"> 浏览全部菜品 <span id="menu-count" class="badge-soft"></span></div>
+      <div class="menu-filter">
+        <input id="menu-search" type="search" placeholder=" 搜菜名，如：宫保鸡丁 / 减脂 / 汤">
+        <select id="menu-filter-caf"><option value="">全部食堂</option></select>
+      </div>
+      <div class="menu-filter" id="menu-filter-tags">
+        <button class="ftag" data-t="高蛋白">高蛋白</button>
+        <button class="ftag" data-t="清淡">清淡</button>
+        <button class="ftag" data-t="素食">素食</button>
+        <button class="ftag" data-t="带汤">带汤</button>
+        <button class="ftag" data-t="蒸">清蒸类</button>
+        <button class="ftag" data-t="辣">辣</button>
+        <button class="ftag" data-t="A级">只看A级</button>
+      </div>
+      <div id="menu-list" class="menu-list"></div>
+      <button class="btn btn-block" id="menu-more" hidden>加载更多</button>
+    </div>
+  </section>
+
+  <!-- ═══════════ Tab4 红黑榜 ═══════════ -->
+  <section class="tab-view" id="view-rank">
+    <div class="page-head"><h2>食堂红黑榜</h2><p>全部数据来自真实评价，AI 提炼口碑：安利好菜，避雷踩坑</p></div>
+
+    <div class="card">
+      <div class="card-title"> AI 口碑洞察 <button class="mini-btn" id="rank-insight-btn">生成洞察</button></div>
+      <div id="rank-insight"><div class="empty-hint">AI 基于全部评价提炼本周食堂口碑 </div></div>
+    </div>
+
+    <div class="seg" id="rank-seg">
+      <button class="seg-btn active" data-k="red"> 红榜 · 安利</button>
+      <button class="seg-btn" data-k="black"> 黑榜 · 避雷</button>
+      <button class="seg-btn" data-k="warn"> 重油重盐预警</button>
+    </div>
+    <div id="rank-list"></div>
+
+    <div class="card" id="my-identity" style="cursor:pointer" title="点击改名"></div>
+
+    <div class="card">
+      <div class="card-title"> 写评价，帮同学避雷/安利</div>
+      <div style="position:relative">
+        <input id="review-dish" type="search" placeholder=" 输入菜名关键词，如：黄焖鸡 / 红烧 牛肉" autocomplete="off">
+        <div id="review-suggest" class="menu-list" style="max-height:180px;position:absolute;z-index:20;left:0;right:0;top:calc(100% + 2px)" hidden></div>
+      </div>
+      <div class="mini-note" id="review-dish-picked" hidden></div>
+      <div class="star-row" id="review-stars">
+        <span class="star-label">评分</span>
+        <span class="stars" data-v="0">☆☆☆☆☆</span>
+      </div>
+      <div class="chip-group" id="review-tags">
+        <button class="chip" data-v="好吃"> 好吃</button>
+        <button class="chip" data-v="分量足"> 分量足</button>
+        <button class="chip" data-v="太咸"> 太咸</button>
+        <button class="chip" data-v="太油"> 太油</button>
+        <button class="chip" data-v="踩雷"> 踩雷</button>
+        <button class="chip" data-v="性价比高"> 性价比高</button>
+        <button class="chip" data-v="回购"> 回购</button>
+      </div>
+      <div class="ai-note" id="review-reply-bar" style="border-color:#7fb3ff;background:#f4f9ff;color:#33587a" hidden></div>
+      <textarea id="review-text" rows="2" placeholder="说点什么（可选），例如：今天的红烧肉肥肉太多…"></textarea>
+      <button class="btn btn-primary btn-block" id="btn-review-submit">提交评价</button>
+      <div class="share-hint" id="review-share-hint"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"> 上传并评价新菜（帮食堂更新食谱）</div>
+      <label class="field"><span>菜名 *</span><input id="rank-add-name" placeholder="手册没收录的新菜，如：小火锅 / 藤椒鸡排"></label>
+      <label class="field"><span>食堂 *</span><select id="rank-add-caf"></select></label>
+      <label class="field"><span>窗口（选填）</span><input id="rank-add-win" placeholder="如：麻辣烫窗口"></label>
+      <button class="btn btn-primary btn-block" id="rank-add-btn">AI 估算营养并加入食谱</button>
+      <div class="mini-note" id="rank-add-status">加入后立即可搜索、可评价、计入推荐池。</div>
+    </div>
+  </section>
+
+  <!-- ═══════════ Tab5 周报 ═══════════ -->
+  <section class="tab-view" id="view-report">
+    <div class="page-head"><h2> 我的健康周报</h2><p>记录一周饮食，AI 生成专属分析报告</p></div>
+
+    <div class="card">
+      <div class="card-title"> 每日目标热量 <span class="badge-soft" id="target-kcal-badge"></span></div>
+      <div style="display:flex;gap:8px">
+        <input id="target-kcal-input" type="number" inputmode="numeric" min="800" max="5000" step="50" placeholder="如：2100（留空则按健康目标自动计算）" style="flex:1">
+        <button class="btn btn-primary" id="target-kcal-save" style="flex-shrink:0">保存</button>
+      </div>
+      <div class="mini-note">保存后：周报按这个数值评估饮食健康，首页「今日摄入」目标同步更新。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"> 今日饮食记录 <button class="mini-btn" id="diary-add-btn">＋手动添加</button></div>
+      <div id="diary-today"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"> 本周记录热量</div>
+      <div id="week-grid" class="week-grid"></div>
+      <div id="day-detail" style="margin-top:.4rem"></div>
+    </div>
+
+    <button class="btn btn-primary btn-block btn-big" id="btn-gen-report">生成本周 AI 健康报告</button>
+    <div id="report-result"></div>
+  </section>
+
+  </main>
+
+  <!-- ═══════════ 底部导航 ═══════════ -->
+  <nav class="tabbar" id="tabbar">
+    <button class="tab active" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10.5L12 3.5l8.5 7"/><path d="M5.5 9.5V20a.5.5 0 00.5.5h12a.5.5 0 00.5-.5V9.5"/><path d="M10 20.5v-5.5h4v5.5"/></svg><b>首页</b></button>
+    <button class="tab" data-tab="snap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8L21 21"/></svg><b>识菜</b></button>
+    <button class="tab" data-tab="dine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h16a8 8 0 01-16 0z"/><path d="M8 12V8M12 12V6M16 12V9"/></svg><b>点餐</b></button>
+    <button class="tab" data-tab="rank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 20v-8"/><path d="M12 20V4"/><path d="M18 20v-5"/></svg><b>榜单</b></button>
+    <button class="tab" data-tab="report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5l5.5-7 3.5 3.5L19 7.5"/><path d="M15.5 7.5H19V11"/></svg><b>周报</b></button>
+  </nav>
+
+  <!-- ═══════════ 菜品评论区抽屉 ═══════════ -->
+  <div class="drawer" id="dish-reviews" hidden>
+    <div class="drawer-head">
+      <button class="icon-btn" id="dr-back" style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:18px;height:18px"><path d="M15 5l-7 7 7 7"/></svg>返回
+      </button>
+      <b id="dr-title" style="flex:1;text-align:center;font-size:17px"></b>
+      <span style="width:56px"></span>
+    </div>
+    <div class="chat-body" id="dr-body" style="padding:.7rem"></div>
+    <div class="chat-input-row" style="justify-content:center">
+      <button class="btn btn-primary" id="dr-write" style="width:100%">我也评价这道菜</button>
+    </div>
+  </div>
+
+  <!-- ═══════════ 设置弹层 ═══════════ -->
+  <div class="modal" id="settings-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><b> 设置</b><button class="icon-btn" id="settings-close">✕</button></div>
+      <p class="mini-note">AI 通道已由蚂蚁MaaS服务端统一提供(免费额度),默认代理模式免配置。密钥仅保存在你自己的浏览器里,一般无需修改。</p>
+      <label class="field"><span>模式</span>
+        <select id="set-mode">
+          <option value="proxy">代理模式 (推荐,服务器转发)</option>
+          <option value="direct">直连模式 (仅限支持浏览器直连的服务)</option>
+        </select>
+      </label>
+      <label class="field"><span>直连 Base URL</span><input id="set-base" placeholder="https://api.deepseek.com/v1"></label>
+      <label class="field"><span>API Key</span><input id="set-key" type="password" placeholder="sk-..."></label>
+      <label class="field"><span>对话模型</span><input id="set-model" placeholder="deepseek-chat"></label>
+      <label class="field"><span>视觉模型</span><input id="set-vmodel" placeholder="qwen-vl-plus 等"></label>
+      <div class="modal-btns">
+        <button class="btn" id="set-test">测试连通</button>
+        <button class="btn btn-primary" id="set-save">保存</button>
+      </div>
+      <div id="set-test-result" class="mini-note"></div>
+
+    </div>
+  </div>
+
+  <div id="toast" hidden></div>
+  <div id="loading" hidden><div class="spin"></div><p id="loading-text">AI 思考中…</p></div>
+</div>
+
+<script src="js/appcfg.js?v=44"></script>
+<script src="js/data.js?v=44"></script>
+<script src="js/store.js?v=44"></script>
+<script src="js/api.js?v=44"></script>
+<script src="js/charts.js?v=44"></script>
+<script src="js/main.js?v=44"></script>
+<script src="js/dine.js?v=44"></script>
+<script src="js/rank.js?v=44"></script>
+<script src="js/report.js?v=44"></script>
+</body>
+</html>

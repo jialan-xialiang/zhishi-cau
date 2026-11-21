@@ -1,0 +1,15 @@
+# 密钥与本地数据 —— 严禁提交公开仓库
+app/ant_key.txt
+app/js/deploy_key.js
+app/_data/
+tools/nutri_progress/
+tools/api_probe.txt
+tools/menu_raw.txt
+.zcode-site/
+.zcode-site.json
+__pycache__/
+*.pyc
+.DS_Store
+
+server_log.txt
+*.log

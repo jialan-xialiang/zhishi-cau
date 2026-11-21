@@ -1,0 +1,17 @@
+{
+  "name": "知食 · 农大AI食堂伴侣",
+  "short_name": "知食",
+  "description": "拍照识菜、AI个性化点餐、食堂红黑榜、健康周报 —— 让每一餐都吃得明白",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f3f7f4",
+  "theme_color": "#1f9d55",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231f9d55'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white'%3E🌾%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
